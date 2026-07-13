@@ -42,14 +42,14 @@ class ConvertIn(BaseModel):
 @router.post("/random/number")
 def random_number(payload: RandomNumberIn):
     if payload.min > payload.max:
-        raise HTTPException(status_code=400, detail="min cannot be greater than max")
+        raise HTTPException(status_code=400, detail="最小值不能大于最大值")
     return {"result": random.randint(payload.min, payload.max), "min": payload.min, "max": payload.max}
 
 
 @router.post("/random/pick")
 def random_pick(payload: RandomPickIn):
     if payload.count > len(payload.items):
-        raise HTTPException(status_code=400, detail="count cannot exceed number of items")
+        raise HTTPException(status_code=400, detail="不能选择的数量大于可选项数量")
     picked = random.sample(payload.items, payload.count)
     return {"items": picked, "count": payload.count}
 
@@ -78,9 +78,9 @@ def generate_password(payload: PasswordIn):
         pools.append(symbols)
         required.append(secrets.choice(symbols))
     if not pools:
-        raise HTTPException(status_code=400, detail="at least one character type must be enabled")
+        raise HTTPException(status_code=400, detail="至少选择一项字符类型")
     if len(required) > payload.length:
-        raise HTTPException(status_code=400, detail="length too short for selected complexity")
+        raise HTTPException(status_code=400, detail="密码长度不能小于所需字符类型数量")
     alphabet = "".join(pools)
     remaining = [secrets.choice(alphabet) for _ in range(payload.length - len(required))]
     chars = required + remaining
