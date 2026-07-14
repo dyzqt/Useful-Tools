@@ -111,6 +111,39 @@ function bindIntegerValidation(inputId, label, options = {}) {
   });
 }
 
+function animateRandomNumber(min, max, finalValue) {
+  const resultEl = $('#rand-number-result');
+  const button = $('#btn-number');
+  button.disabled = true;
+  button.textContent = '生成中...';
+  resultEl.classList.add('random-rolling');
+
+  const steps = 28;
+  let index = 0;
+
+  function next() {
+    const progress = index / (steps - 1);
+    const delay = 28 + Math.pow(progress, 2.4) * 210;
+    const value = index === steps - 1
+      ? finalValue
+      : Math.floor(Math.random() * (max - min + 1)) + min;
+    resultEl.textContent = value;
+    index += 1;
+
+    if (index <= steps) {
+      setTimeout(next, delay);
+    } else {
+      resultEl.classList.remove('random-rolling');
+      resultEl.classList.add('random-final');
+      setTimeout(() => resultEl.classList.remove('random-final'), 420);
+      button.disabled = false;
+      button.textContent = '生成';
+    }
+  }
+
+  next();
+}
+
 function mountRandomNumber() {
   bindIntegerValidation('rand-min', '最小值');
   bindIntegerValidation('rand-max', '最大值');
@@ -126,9 +159,53 @@ function mountRandomNumber() {
     }
     try {
       const r = await api.randomNumber({ min, max });
-      $('#rand-number-result').textContent = r.result;
+      animateRandomNumber(min, max, r.result);
     } catch (e) { showToast(e.message, 'error'); }
   };
+}
+
+function animateRandomPick(items, count, finalItems) {
+  const resultEl = $('#pick-result');
+  const button = $('#btn-pick');
+  button.disabled = true;
+  button.textContent = '抽取中...';
+  resultEl.classList.add('random-rolling');
+
+  const steps = 28;
+  let index = 0;
+
+  function sampleItems() {
+    const pool = [...items];
+    const selected = [];
+    for (let i = 0; i < count && pool.length; i++) {
+      const idx = Math.floor(Math.random() * pool.length);
+      selected.push(pool.splice(idx, 1)[0]);
+    }
+    return selected;
+  }
+
+  function render(itemsToRender) {
+    resultEl.innerHTML = itemsToRender.map(i => `<span class="tag tag-lg">${escHtml(i)}</span>`).join(' ');
+  }
+
+  function next() {
+    const progress = index / (steps - 1);
+    const delay = 28 + Math.pow(progress, 2.4) * 210;
+    render(index === steps - 1 ? finalItems : sampleItems());
+    index += 1;
+
+    if (index <= steps) {
+      setTimeout(next, delay);
+    } else {
+      resultEl.classList.remove('random-rolling');
+      resultEl.classList.add('random-final');
+      setTimeout(() => resultEl.classList.remove('random-final'), 420);
+      button.disabled = false;
+      button.textContent = '抽取';
+    }
+  }
+
+  next();
 }
 
 function mountRandomPick() {
@@ -154,7 +231,7 @@ function mountRandomPick() {
     }
     try {
       const r = await api.randomPick({ items, count });
-      $('#pick-result').innerHTML = r.items.map(i => `<span class="tag tag-lg">${escHtml(i)}</span>`).join(' ');
+      animateRandomPick(items, count, r.items);
     } catch (e) { showToast(e.message, 'error'); }
   };
 }

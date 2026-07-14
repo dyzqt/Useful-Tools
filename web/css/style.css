@@ -327,6 +327,28 @@ button, a { -webkit-tap-highlight-color: transparent; }
   color: var(--primary);
   font-size: 26px;
   font-weight: 900;
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.random-rolling {
+  color: #F97316;
+  letter-spacing: .08em;
+  text-shadow: 0 0 18px rgba(249, 115, 22, .22);
+  animation: numberPulse .16s linear infinite;
+}
+.random-final {
+  animation: finalPop .42s ease;
+}
+@keyframes numberPulse {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(-2px); opacity: .72; }
+}
+@keyframes finalPop {
+  0% { transform: scale(.92); }
+  65% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
 .result-panel-medium {
   color: var(--text);
