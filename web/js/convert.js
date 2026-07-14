@@ -19,10 +19,34 @@ const UNITS = {
   weight: ['mg','g','kg','ton','oz','lb'],
 };
 
+const UNIT_LABELS = {
+  mm: '毫米',
+  cm: '厘米',
+  m: '米',
+  km: '千米',
+  in: '英寸',
+  ft: '英尺',
+  yd: '码',
+  mile: '英里',
+  c: '摄氏度',
+  f: '华氏度',
+  k: '开尔文',
+  mg: '毫克',
+  g: '克',
+  kg: '千克',
+  ton: '吨',
+  oz: '盎司',
+  lb: '磅',
+};
+
+function unitLabel(unit) {
+  return UNIT_LABELS[unit] || unit;
+}
+
 function mountConvert() {
   function populateUnits() {
     const cat = $('#conv-cat').value;
-    const opts = UNITS[cat].map(u => `<option value="${u}">${u}</option>`).join('');
+    const opts = UNITS[cat].map(u => `<option value="${u}">${unitLabel(u)}</option>`).join('');
     $('#conv-from').innerHTML = opts;
     $('#conv-to').innerHTML = opts;
     if (UNITS[cat].length > 1) {
@@ -41,7 +65,7 @@ function mountConvert() {
         to_unit: $('#conv-to').value,
         value: parseFloat($('#conv-val').value),
       });
-      $('#conv-result').textContent = `${r.value} ${r.from_unit} = ${r.result} ${r.to_unit}`;
+      $('#conv-result').textContent = `${r.value} ${unitLabel(r.from_unit)} = ${r.result} ${unitLabel(r.to_unit)}`;
     } catch (e) { showToast(e.message, 'error'); }
   };
 }

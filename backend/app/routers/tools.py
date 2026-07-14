@@ -25,7 +25,7 @@ class DiceIn(BaseModel):
 
 
 class PasswordIn(BaseModel):
-    length: int = Field(default=16, ge=4, le=128)
+    length: int = Field(default=16)
     use_uppercase: bool = True
     use_lowercase: bool = True
     use_digits: bool = True
@@ -62,6 +62,10 @@ def random_dice(payload: DiceIn):
 
 @router.post("/password")
 def generate_password(payload: PasswordIn):
+    if payload.length < 1:
+        raise HTTPException(status_code=400, detail="长度过小")
+    if payload.length > 100:
+        raise HTTPException(status_code=400, detail="长度过大")
     pools = []
     required = []
     if payload.use_uppercase:
@@ -79,11 +83,12 @@ def generate_password(payload: PasswordIn):
         required.append(secrets.choice(symbols))
     if not pools:
         raise HTTPException(status_code=400, detail="至少选择一项字符类型")
-    if len(required) > payload.length:
-        raise HTTPException(status_code=400, detail="密码长度不能小于所需字符类型数量")
     alphabet = "".join(pools)
-    remaining = [secrets.choice(alphabet) for _ in range(payload.length - len(required))]
-    chars = required + remaining
+    if len(required) > payload.length:
+        chars = [secrets.choice(alphabet) for _ in range(payload.length)]
+    else:
+        remaining = [secrets.choice(alphabet) for _ in range(payload.length - len(required))]
+        chars = required + remaining
     secrets.SystemRandom().shuffle(chars)
     password = "".join(chars)
     return {"password": password, "length": payload.length}
