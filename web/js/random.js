@@ -130,7 +130,7 @@ function animateRandomNumber(min, max, finalValue) {
     resultEl.textContent = value;
     index += 1;
 
-    if (index <= steps) {
+    if (index < steps) {
       setTimeout(next, delay);
     } else {
       resultEl.classList.remove('random-rolling');
@@ -194,7 +194,7 @@ function animateRandomPick(items, count, finalItems) {
     render(index === steps - 1 ? finalItems : sampleItems());
     index += 1;
 
-    if (index <= steps) {
+    if (index < steps) {
       setTimeout(next, delay);
     } else {
       resultEl.classList.remove('random-rolling');
@@ -236,6 +236,44 @@ function mountRandomPick() {
   };
 }
 
+function animateRandomDice(sides, count, finalRolls) {
+  const resultEl = $('#dice-result');
+  const button = $('#btn-dice');
+  button.disabled = true;
+  button.textContent = '投掷中...';
+  resultEl.classList.add('random-rolling');
+
+  const steps = 28;
+  let index = 0;
+
+  function sampleRolls() {
+    return Array.from({ length: count }, () => Math.floor(Math.random() * sides) + 1);
+  }
+
+  function render(rolls) {
+    resultEl.innerHTML = rolls.map(v => `<span class="tag tag-lg">${v}</span>`).join(' ') + `&nbsp;&nbsp;总和: <strong>${rolls.reduce((sum, value) => sum + value, 0)}</strong>`;
+  }
+
+  function next() {
+    const progress = index / (steps - 1);
+    const delay = 28 + Math.pow(progress, 2.4) * 210;
+    render(index === steps - 1 ? finalRolls : sampleRolls());
+    index += 1;
+
+    if (index < steps) {
+      setTimeout(next, delay);
+    } else {
+      resultEl.classList.remove('random-rolling');
+      resultEl.classList.add('random-final');
+      setTimeout(() => resultEl.classList.remove('random-final'), 420);
+      button.disabled = false;
+      button.textContent = '掷骰子';
+    }
+  }
+
+  next();
+}
+
 function mountRandomDice() {
   bindIntegerValidation('dice-sides', '面数', { min: 2, max: 1000 });
   bindIntegerValidation('dice-count', '数量', { min: 1, max: 100 });
@@ -245,7 +283,7 @@ function mountRandomDice() {
     if (sides === null || count === null) return;
     try {
       const r = await api.randomDice({ sides, count });
-      $('#dice-result').innerHTML = r.rolls.map(v => `<span class="tag tag-lg">${v}</span>`).join(' ') + `&nbsp;&nbsp;总和: <strong>${r.total}</strong>`;
+      animateRandomDice(sides, count, r.rolls);
     } catch (e) { showToast(e.message, 'error'); }
   };
 }
