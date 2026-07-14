@@ -1,4 +1,4 @@
-const BASE = 'http://127.0.0.1:8000';
+const BASE = '';
 
 async function req(method, path, body) {
   const opts = {
@@ -8,14 +8,28 @@ async function req(method, path, body) {
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(BASE + path, opts);
   if (res.status === 204) return null;
-  const data = await res.json();
+
+  const contentType = res.headers.get('content-type') || '';
+  const text = await res.text();
+  let data = null;
+
+  if (contentType.includes('application/json')) {
+    data = text ? JSON.parse(text) : null;
+  } else {
+    const isHtml = text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html');
+    const message = isHtml
+      ? 'API 返回了 HTML 页面，请确认当前页面是通过后端 8000 端口或 ngrok 的 8000 tunnel 打开的。'
+      : `API 返回了非 JSON 内容：${text.slice(0, 80)}`;
+    throw new Error(message);
+  }
+
   if (!res.ok) throw new Error(data.detail || `${method} ${path} failed`);
   return data;
 }
 
 const api = {
   // Weather
-  weather: (city) => req('GET', `/api/weather?city=${encodeURIComponent(city)}`),
+  weather: (city, days = 3) => req('GET', `/api/weather?city=${encodeURIComponent(city)}&days=${days}`),
 
   // Memos
   createMemo:  (d) => req('POST', '/api/memos', d),

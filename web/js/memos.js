@@ -5,13 +5,13 @@ function renderMemos() {
       <h3 id="memo-form-title">新建备忘录</h3>
       <input type="hidden" id="memo-edit-id" />
       <div class="form-group">
-        <label>标题</label><input type="text" id="memo-title" placeholder="备忘录标题" maxlength="120" />
+        <label for="memo-title">标题</label><input type="text" id="memo-title" placeholder="备忘录标题" maxlength="120" />
       </div>
       <div class="form-group">
-        <label>内容</label><textarea id="memo-content" placeholder="备忘录内容（可选）"></textarea>
+        <label for="memo-content">内容</label><textarea id="memo-content" placeholder="备忘录内容（可选）"></textarea>
       </div>
       <div class="form-group">
-        <label>标签（逗号分隔）</label><input type="text" id="memo-tags" placeholder="如：学习, 作业" />
+        <label for="memo-tags">标签（逗号分隔）</label><input type="text" id="memo-tags" placeholder="如：学习, 作业" />
       </div>
       <div class="btn-group">
         <button class="btn btn-primary" id="memo-save">保存</button>
@@ -19,7 +19,7 @@ function renderMemos() {
       </div>
     </div>
     <div class="card">
-      <div class="search-bar"><input type="text" id="memo-search" placeholder="搜索备忘录..." /></div>
+      <div class="search-bar"><label class="sr-only" for="memo-search">搜索备忘录</label><input type="text" id="memo-search" placeholder="搜索备忘录..." /></div>
       <div id="memo-list" class="item-list"></div>
     </div>`;
 }

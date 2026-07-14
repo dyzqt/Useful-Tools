@@ -5,14 +5,14 @@ function renderCountdowns() {
       <h3 id="cd-form-title">新建倒计时</h3>
       <input type="hidden" id="cd-edit-id" />
       <div class="form-group">
-        <label>标题</label><input type="text" id="cd-title" placeholder="如：期末考试" maxlength="120" />
+        <label for="cd-title">标题</label><input type="text" id="cd-title" placeholder="如：期末考试" maxlength="120" />
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>目标日期时间</label><input type="datetime-local" id="cd-target" />
+          <label for="cd-target">目标日期时间</label><input type="datetime-local" id="cd-target" />
         </div>
         <div class="form-group">
-          <label>说明（可选）</label><input type="text" id="cd-desc" placeholder="简短说明" />
+          <label for="cd-desc">说明（可选）</label><input type="text" id="cd-desc" placeholder="简短说明" />
         </div>
       </div>
       <div class="btn-group">

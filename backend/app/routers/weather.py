@@ -28,6 +28,8 @@ _WEATHER_DESCRIPTIONS = {
     81: "中等阵雨",
     82: "强阵雨",
     95: "雷暴",
+    96: "雷暴伴轻微冰雹",
+    99: "雷暴伴强冰雹",
 }
 
 
@@ -49,7 +51,7 @@ def _geocode(city: str) -> dict:
     return results[0]
 
 
-def get_weather(city: str) -> dict:
+def get_weather(city: str, days: int = 3) -> dict:
     place = _geocode(city)
     latitude = place["latitude"]
     longitude = place["longitude"]
@@ -60,7 +62,7 @@ def get_weather(city: str) -> dict:
             "longitude": longitude,
             "current": "temperature_2m,wind_speed_10m,weather_code",
             "daily": "weather_code,temperature_2m_max,temperature_2m_min",
-            "forecast_days": 3,
+            "forecast_days": days,
             "timezone": "auto",
         },
         timeout=10,
@@ -72,10 +74,10 @@ def get_weather(city: str) -> dict:
     current_code = int(current.get("weather_code", -1))
     forecast = []
     for date, code, tmax, tmin in zip(
-        daily.get("time", [])[:3],
-        daily.get("weather_code", [])[:3],
-        daily.get("temperature_2m_max", [])[:3],
-        daily.get("temperature_2m_min", [])[:3],
+        daily.get("time", [])[:days],
+        daily.get("weather_code", [])[:days],
+        daily.get("temperature_2m_max", [])[:days],
+        daily.get("temperature_2m_min", [])[:days],
     ):
         code = int(code)
         forecast.append(
@@ -98,15 +100,21 @@ def get_weather(city: str) -> dict:
             "weather_code": current_code,
             "description": weather_description(current_code),
         },
+        "forecast_days": days,
         "forecast": forecast,
     }
 
 
 @router.get("/weather")
-def weather(city: str = Query(min_length=1, max_length=80)):
+def weather(
+    city: str = Query(min_length=1, max_length=80),
+    days: int = Query(default=3),
+):
+    if days not in {3, 7, 15}:
+        raise HTTPException(status_code=422, detail="days must be 3, 7, or 15")
     try:
-        return get_weather(city)
+        return get_weather(city, days)
     except CityNotFound:
-        raise HTTPException(status_code=404, detail="city not found")
+        raise HTTPException(status_code=404, detail="城市未找到")
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"weather service error: {exc}")

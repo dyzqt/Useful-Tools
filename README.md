@@ -33,12 +33,14 @@ Useful-Tools/
         ├── weather.js          # 天气查询模块
         ├── memos.js            # 备忘录模块
         ├── countdowns.js       # 倒计时模块
-        └── tools.js            # 随机数/密码/换算 (Tab 切换)
+        ├── random.js           # 随机数/抽签/骰子模块
+        ├── password.js         # 密码生成模块
+        └── convert.js          # 单位换算模块
 ```
 
 ## 启动方式
 
-### 1. 启动后端
+只需要启动后端服务，FastAPI 会在同一个 `8000` 端口同时提供前端页面和后端 API。
 
 ```powershell
 # Windows PowerShell
@@ -49,37 +51,19 @@ python -m pip install -r requirements.txt
 python -m uvicorn app.main:app --reload
 ```
 
-```bash
-# macOS / Linux
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
-```
-
-后端启动后访问：
+启动后访问：
+- 前端首页：http://127.0.0.1:8000/
 - API 文档：http://127.0.0.1:8000/docs
 - 健康检查：http://127.0.0.1:8000/health
 
-### 2. 启动前端
-
-用浏览器直接打开 `web/index.html`，或启动静态服务器：
-
-```bash
-cd web
-python -m http.server 3000
-# 访问 http://127.0.0.1:3000
-```
-
-### 3. 运行测试
+### 运行测试
 
 ```bash
 cd backend
 python -m pytest -q
 ```
 
-> API 地址默认为 `http://127.0.0.1:8000`，如需修改编辑 `web/js/api.js` 第一行。
+> 前端已使用同源 API 请求，不需要单独启动 `web` 静态服务器。
 
 ## 后端 API 概览
 

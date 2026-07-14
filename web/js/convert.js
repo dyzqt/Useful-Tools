@@ -3,13 +3,13 @@ function renderConvert() {
     <div class="tool-header"><h2>单位换算</h2><p>长度 · 温度 · 重量换算</p></div>
     <div class="card"><h3>单位换算</h3>
       <div class="form-row">
-        <div class="form-group"><label>类别</label><select id="conv-cat"><option value="length">长度</option><option value="temperature">温度</option><option value="weight">重量</option></select></div>
-        <div class="form-group"><label>数值</label><input type="number" id="conv-val" value="1" step="any" /></div>
-        <div class="form-group"><label>从</label><select id="conv-from"></select></div>
-        <div class="form-group"><label>到</label><select id="conv-to"></select></div>
-        <div class="form-group" style="flex:0;align-self:flex-end"><button class="btn btn-primary" id="btn-convert">换算</button></div>
+        <div class="form-group"><label for="conv-cat">类别</label><select id="conv-cat"><option value="length">长度</option><option value="temperature">温度</option><option value="weight">重量</option></select></div>
+        <div class="form-group"><label for="conv-val">数值</label><input type="number" id="conv-val" value="1" step="any" /></div>
+        <div class="form-group"><label for="conv-from">从</label><select id="conv-from"></select></div>
+        <div class="form-group"><label for="conv-to">到</label><select id="conv-to"></select></div>
+        <div class="form-group form-group-compact"><button class="btn btn-primary" id="btn-convert">换算</button></div>
       </div>
-      <div id="conv-result" style="font-size:22px;font-weight:700;text-align:center;margin-top:12px;color:var(--primary)"></div>
+      <div id="conv-result" class="result-panel result-panel-convert"></div>
     </div>`;
 }
 
