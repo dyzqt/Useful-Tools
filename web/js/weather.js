@@ -1,8 +1,37 @@
+const WEATHER_HISTORY_KEY = 'usefultool_weather_history';
+const MAX_WEATHER_RECORDS = 10;
+
 let weatherState = {
   city: '',
   days: 3,
   data: null,
 };
+
+function getWeatherHistory() {
+  try {
+    const history = JSON.parse(localStorage.getItem(WEATHER_HISTORY_KEY));
+    if (!Array.isArray(history)) return [];
+    return history.filter(item => typeof item === 'string' && item.trim()).slice(0, MAX_WEATHER_RECORDS);
+  } catch { return []; }
+}
+
+function saveWeatherHistory(history) {
+  localStorage.setItem(WEATHER_HISTORY_KEY, JSON.stringify(history));
+}
+
+function addWeatherRecord(city) {
+  const value = String(city || '').trim();
+  if (!value) return;
+  const history = getWeatherHistory().filter(item => item.toLowerCase() !== value.toLowerCase());
+  history.unshift(value);
+  saveWeatherHistory(history.slice(0, MAX_WEATHER_RECORDS));
+  renderWeatherHistory();
+}
+
+function clearWeatherHistory() {
+  localStorage.removeItem(WEATHER_HISTORY_KEY);
+  renderWeatherHistory();
+}
 
 function renderWeather() {
   return `
@@ -13,7 +42,16 @@ function renderWeather() {
           <label for="city-input">城市名</label><input type="text" id="city-input" placeholder="输入城市名，如 Beijing、Tokyo、上海..." />
         </div>
         <div class="form-group form-group-compact">
-          <button class="btn btn-primary" id="search-weather">查询</button>
+          <button class="btn btn-primary" id="search-weather" type="button">查询</button>
+        </div>
+        <div class="form-group form-group-compact">
+          <button class="btn btn-outline" id="btn-ip-location" type="button" title="自动定位当前 IP 地理位置">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2a8 8 0 0 0-8 8c0 5.4 8 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8Z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            IP定位
+          </button>
         </div>
       </div>
       <div class="tabs forecast-range" aria-label="天气预报天数">
@@ -22,11 +60,18 @@ function renderWeather() {
         <button class="tab-btn" data-days="15" type="button">15 天</button>
       </div>
       <div id="weather-result"></div>
-    </div>`;
+    </div>
+    <div id="weather-history-section" class="hidden"></div>`;
 }
 
 function mountWeather() {
+  const cityInput = $('#city-input');
+  if (weatherState.city) cityInput.value = weatherState.city;
+
   $$('.forecast-range .tab-btn').forEach(btn => {
+    const selected = Number(btn.dataset.days) === weatherState.days;
+    btn.classList.toggle('active', selected);
+    btn.setAttribute('aria-selected', String(selected));
     btn.onclick = () => {
       weatherState.days = parseInt(btn.dataset.days);
       $$('.forecast-range .tab-btn').forEach(item => {
@@ -37,24 +82,143 @@ function mountWeather() {
     };
   });
 
-  $('#search-weather').onclick = () => {
-    const city = $('#city-input').value.trim();
-    if (!city) { showToast('请输入城市名', 'error'); return; }
-    weatherState.city = city;
-    loadWeather();
-  };
-  $('#city-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('#search-weather').click(); });
+  $('#search-weather').onclick = searchWeatherByInput;
+  $('#btn-ip-location').onclick = loadIPLocationWeather;
+  cityInput.addEventListener('keydown', e => { if (e.key === 'Enter') $('#search-weather').click(); });
+
+  renderWeatherHistory();
+
+  if (weatherState.data) {
+    showWeatherData(weatherState.data);
+  } else {
+    loadIPLocationWeather();
+  }
 }
 
-async function loadWeather() {
-  $('#weather-result').innerHTML = `<div class="result-panel"><div class="spinner"></div> 查询中...</div>`;
+function searchWeatherByInput() {
+  const city = $('#city-input').value.trim();
+  if (!city) { showToast('请输入城市名', 'error'); return; }
+  weatherState.city = city;
+  loadWeather({ addHistory: true });
+}
+
+async function fetchWithTimeout(url) {
+  const options = {};
+  if (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) {
+    options.signal = AbortSignal.timeout(5000);
+  }
+  return fetch(url, options);
+}
+
+async function detectLocationByIP() {
+  const providers = [
+    {
+      url: 'https://ipapi.co/json/',
+      parse: data => ({
+        city: data.city,
+        country: data.country_name,
+        latitude: data.latitude,
+        longitude: data.longitude,
+      }),
+    },
+    {
+      url: 'https://ipwho.is/?lang=zh-CN',
+      parse: data => data && data.success !== false ? {
+        city: data.city,
+        country: data.country,
+        latitude: data.latitude,
+        longitude: data.longitude,
+      } : null,
+    },
+  ];
+
+  for (const provider of providers) {
+    try {
+      const res = await fetchWithTimeout(provider.url);
+      if (!res.ok) continue;
+      const location = provider.parse(await res.json());
+      if (location && location.city) return location;
+    } catch {}
+  }
+
+  throw new Error('无法通过 IP 获取位置信息');
+}
+
+async function loadIPLocationWeather() {
+  const resultEl = $('#weather-result');
+  if (!resultEl) return;
+
+  resultEl.innerHTML = `<div class="result-panel"><div class="spinner"></div> 正在定位当前 IP 地理位置...</div>`;
+
+  try {
+    const location = await detectLocationByIP();
+    weatherState.city = location.city;
+    const input = $('#city-input');
+    if (input) input.value = location.city;
+
+    const data = await loadWeather({
+      addHistory: true,
+      loadingText: `正在查询 ${location.city || '当前位置'} 的天气...`,
+    });
+    if (data) {
+      showToast(`已定位到 ${location.city}${location.country ? '，' + location.country : ''}`);
+    }
+  } catch (e) {
+    resultEl.innerHTML = `<p class="error-text">${escHtml(e.message)}</p>`;
+  }
+}
+
+async function loadWeather(options = {}) {
+  const { addHistory = false, loadingText = '查询中...' } = options;
+  $('#weather-result').innerHTML = `<div class="result-panel"><div class="spinner"></div> ${escHtml(loadingText)}</div>`;
   try {
     const data = await api.weather(weatherState.city, weatherState.days);
     weatherState.data = data;
     showWeatherData(data);
+    if (addHistory) addWeatherRecord(data.city || weatherState.city);
+    return data;
   } catch (e) {
     $('#weather-result').innerHTML = `<p class="error-text">${escHtml(e.message)}</p>`;
+    return null;
   }
+}
+
+function renderWeatherHistory() {
+  const section = $('#weather-history-section');
+  if (!section) return;
+
+  const history = getWeatherHistory();
+  section.classList.toggle('hidden', !history.length);
+  if (!history.length) {
+    section.innerHTML = '';
+    return;
+  }
+
+  section.innerHTML = `
+    <div class="history-header">
+      <h3>搜索记录 <span class="history-count">(${history.length})</span></h3>
+      <button class="btn btn-sm btn-outline" id="btn-clear-weather-history" type="button">清空</button>
+    </div>
+    <div class="search-history-list">${history.map((city, index) => `
+      <button class="search-history-chip" data-index="${index}" type="button">${escHtml(city)}</button>
+    `).join('')}</div>`;
+
+  section.querySelectorAll('.search-history-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const city = getWeatherHistory()[Number(btn.dataset.index)];
+      if (!city) return;
+      const input = $('#city-input');
+      if (input) input.value = city;
+      weatherState.city = city;
+      loadWeather({ addHistory: true });
+    });
+  });
+
+  $('#btn-clear-weather-history')?.addEventListener('click', () => {
+    if (!confirm('确认清空所有搜索记录？')) return;
+    clearWeatherHistory();
+    showToast('已清空搜索记录');
+  });
 }
 
 function weatherIcon(code) {

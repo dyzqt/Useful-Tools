@@ -620,6 +620,86 @@ button, a { -webkit-tap-highlight-color: transparent; }
   word-break: break-all;
 }
 
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.history-header h3 { margin-bottom: 0; }
+.history-count {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.history-list { display: flex; flex-direction: column; gap: 8px; }
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #FFFFFF;
+  transition: border-color var(--transition);
+}
+.history-item:hover { border-color: rgba(37, 99, 235, .18); }
+.history-item-main { flex: 1; min-width: 0; }
+.history-pw {
+  display: block;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--primary-soft);
+  color: var(--text);
+  font-family: "SF Mono", "Fira Code", Consolas, monospace;
+  font-size: 15px;
+  letter-spacing: .04em;
+  word-break: break-all;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.history-pw:hover { background: rgba(37, 99, 235, .12); }
+.history-meta {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.search-history-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.search-history-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #FFFFFF;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.search-history-chip:hover {
+  background: var(--primary-soft);
+  border-color: rgba(37, 99, 235, .20);
+  color: var(--primary);
+}
+#weather-history-section {
+  margin-top: 12px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .88);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
 .tabs { display: flex; gap: 6px; margin-bottom: 20px; padding: 5px; border: 1px solid var(--border); border-radius: 14px; background: #FFFFFF; }
 .tab-btn {
   min-height: 40px;
