@@ -20,6 +20,15 @@ function renderCountdowns() {
         <button class="btn btn-outline hidden" id="cd-cancel">取消编辑</button>
       </div>
     </div>
+    <div id="cd-confirm" class="confirm-overlay hidden">
+      <div class="confirm-box">
+        <p>是否添加到备忘录？</p>
+        <div class="confirm-actions">
+          <button class="btn btn-outline" id="cd-confirm-cancel">取消</button>
+          <button class="btn btn-primary" id="cd-confirm-ok">确定</button>
+        </div>
+      </div>
+    </div>
     <div class="card"><div id="cd-list" class="item-list"></div></div>`;
 }
 
@@ -31,6 +40,9 @@ function mountCountdowns() {
   const editIdEl = $('#cd-edit-id');
   const formTitle = $('#cd-form-title');
   const cancelBtn = $('#cd-cancel');
+  const confirmEl = $('#cd-confirm');
+  const confirmOkBtn = $('#cd-confirm-ok');
+  const confirmCancelBtn = $('#cd-confirm-cancel');
 
   function resetForm() {
     editIdEl.value = '';
@@ -41,22 +53,34 @@ function mountCountdowns() {
     cancelBtn.classList.add('hidden');
   }
 
-  $('#cd-save').onclick = async () => {
+  async function saveCountdown(addToMemo) {
     const title = titleEl.value.trim();
     const target = targetEl.value;
-    if (!title || !target) { showToast('标题和目标日期不能为空', 'error'); return; }
-    // Convert datetime-local (browser local) to ISO with timezone offset
+    const id = editIdEl.value;
     const dt = new Date(target);
-    const targetAt = dt.toISOString();
-    const payload = { title, target_at: targetAt, description: descEl.value };
+    const payload = { title, target_at: dt.toISOString(), description: descEl.value };
+    if (!id) payload.add_to_memo = addToMemo;
     try {
-      const id = editIdEl.value;
       if (id) { await api.updateCountdown(id, payload); showToast('已更新'); }
       else { await api.createCountdown(payload); showToast('已创建'); }
       resetForm();
       loadList();
     } catch (e) { showToast(e.message, 'error'); }
+  }
+
+  $('#cd-save').onclick = async () => {
+    const title = titleEl.value.trim();
+    const target = targetEl.value;
+    if (!title || !target) { showToast('标题和目标日期不能为空', 'error'); return; }
+    if (editIdEl.value) {
+      await saveCountdown(false);
+      return;
+    }
+    confirmEl.classList.remove('hidden');
   };
+  confirmOkBtn.onclick = () => { confirmEl.classList.add('hidden'); saveCountdown(true); };
+  confirmCancelBtn.onclick = () => { confirmEl.classList.add('hidden'); saveCountdown(false); };
+  confirmEl.onclick = (e) => { if (e.target === confirmEl) { confirmEl.classList.add('hidden'); saveCountdown(false); } };
   cancelBtn.onclick = resetForm;
 
   async function loadList() {

@@ -763,6 +763,31 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ---- confirm dialog overlay ---- */
+.confirm-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(15, 23, 42, .45);
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn .15s ease;
+}
+.confirm-box {
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 28px 32px 22px;
+  max-width: 360px; width: calc(100% - 32px);
+  text-align: center;
+  animation: scaleIn .18s ease;
+}
+.confirm-box p {
+  font-size: 16px; color: var(--text); margin-bottom: 20px; line-height: 1.5;
+}
+.confirm-actions {
+  display: flex; gap: 12px; justify-content: center;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
